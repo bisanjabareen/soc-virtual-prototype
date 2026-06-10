@@ -29,7 +29,6 @@ void CPU::run() {
         fetch();
         decode();
         execute();
-        // Add any necessary cycle counting or timing here
     }
 }
 
