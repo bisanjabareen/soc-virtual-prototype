@@ -29,11 +29,11 @@ private:
 public:
     CPU();
     ~CPU();
-    void fetch(uint32_t* instruction);
-    void decode(uint32_t* instruction);
-    void execute(uint32_t* instruction);
-    void run(uint32_t* instruction);                     
 
+    uint32_t fetch();                                
+    decoded_instruction_t decode(uint32_t raw);         
+    void execute(const decoded_instruction_t& instr);   
+    void run();                                      
     uint8_t read_mem(uint32_t addr);
     void write_mem(uint32_t addr, uint8_t value);
 };

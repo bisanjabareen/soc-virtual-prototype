@@ -20,10 +20,6 @@ void CPU::execute() {
 
 }
 
-void CPU::memory() {
-  
-}
-
 void CPU::run() {
     while (true) {
         fetch();
