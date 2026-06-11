@@ -21,12 +21,13 @@ struct decoded_instruction_t {
 
 class CPU {
 private:
-    uint32_t PC;                    
+    uint32_t PC;     
+    uint32_t last_PC;               
     std::vector<uint8_t> memory;    
-    uint32_t registerFile[32];      
+    int32_t registerFile[32];      
 
 public:
-    CPU(uint32_t initial_pc, unint32_t memory_size);
+    CPU(uint32_t initial_pc, uint32_t memory_size);
     ~CPU();
 
     uint32_t fetch();                                
