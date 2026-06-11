@@ -1,7 +1,6 @@
+#pragma once
 #include <cstdint>
 #include <vector>
-
-int IALIGN = 32;
 
 enum class Operation {
     ADD,
@@ -27,7 +26,7 @@ private:
     uint32_t registerFile[32];      
 
 public:
-    CPU();
+    CPU(uint32_t initial_pc, unint32_t memory_size);
     ~CPU();
 
     uint32_t fetch();                                
