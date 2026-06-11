@@ -1,7 +1,9 @@
 #include <cstdint>
 #include <vector>
 
-enum class Op {
+int IALIGN = 32;
+
+enum class Operation {
     ADD,
     SUB,
     ADDI,
@@ -11,13 +13,11 @@ enum class Op {
     LUI,   
 };
 struct decoded_instruction_t {
-    uint8_t opcode;               
-    uint8_t rd;                   
-    uint8_t funct3;               
+    Operation op;           
+    uint8_t rd;                                 
     uint8_t rs1;                  
-    uint8_t rs2;                  
-    uint8_t funct7;
-    uint32_t imm;
+    uint8_t rs2;                 
+    int32_t imm;
 };
 
 class CPU {
@@ -31,7 +31,7 @@ public:
     ~CPU();
 
     uint32_t fetch();                                
-    decoded_instruction_t decode(uint32_t raw);         
+    decoded_instruction_t decode(uint32_t raw_instr);         
     void execute(const decoded_instruction_t& instr);   
     void run();                                      
     uint8_t read_mem(uint32_t addr);
