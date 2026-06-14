@@ -36,4 +36,7 @@ public:
     void run();                                      
     uint8_t read_mem(uint32_t addr);
     void write_mem(uint32_t addr, uint8_t value);
+    int32_t get_reg(uint8_t reg);
+    void set_reg(uint8_t reg, int32_t value);
+    void step();
 };

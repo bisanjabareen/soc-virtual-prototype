@@ -1,4 +1,4 @@
-#include "cpu.h"
+#include "iss.h"
 
 CPU::CPU(uint32_t initial_pc, uint32_t memory_size) {
     PC = initial_pc;
@@ -16,6 +16,22 @@ int32_t sign_extend(uint32_t value, int bits) {
     int32_t m = 1 << (bits - 1);
     return (value ^ m) - m;
 }
+
+int32_t CPU::get_reg(uint8_t reg) {
+    if (reg < 32) {
+        return registerFile[reg];
+    } else {
+        return 0; 
+    }
+}
+
+void CPU::set_reg(uint8_t reg, int32_t value) {
+    if (reg < 32) {
+        registerFile[reg] = value;
+    }
+}
+
+
 
 uint32_t CPU::fetch() {
     uint32_t instr = read_mem(PC);
@@ -358,5 +374,14 @@ void CPU::run() {
         execute(instruction);
         registerFile[0] = 0;
     }
+}
+
+void CPU::step() {
+    last_PC = PC;
+    uint32_t raw_instruction = fetch();
+    PC += 4;
+    decoded_instruction_t instruction = decode(raw_instruction);
+    execute(instruction);
+    registerFile[0] = 0;
 }
 
