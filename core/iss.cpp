@@ -12,6 +12,11 @@ CPU::CPU(uint32_t initial_pc, uint32_t memory_size) {
 CPU::~CPU() {
 }
 
+int32_t sign_extend(uint32_t value, int bits) {
+    int32_t m = 1 << (bits - 1);
+    return (value ^ m) - m;
+}
+
 uint32_t CPU::fetch() {
     uint32_t instr = read_mem(PC);
     uint32_t instr2 = read_mem(PC + 1);
@@ -43,6 +48,7 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
         decoded.rd = (raw_instr >> 7) & 0x1F; 
         decoded.rs1 = (raw_instr >> 15) & 0x1F;
         decoded.imm = (raw_instr >> 20) & 0xFFF; 
+        decoded.imm = sign_extend(decoded.imm, 12);
         switch (funct3) {
             case 0x0: // LB
                 decoded.op = Operation::LB;
@@ -68,6 +74,7 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
         decoded.rs1 = (raw_instr >> 15) & 0x1F; 
         decoded.rs2 = (raw_instr >> 20) & 0x1F;
         decoded.imm = ((raw_instr >> 7) & 0x1F) | ((raw_instr >> 25) & 0x7F) << 5;
+        decoded.imm = sign_extend(decoded.imm, 12);
         switch (funct3) {
             case 0x0: // SB
                 decoded.op = Operation::SB;
@@ -86,6 +93,7 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
         decoded.rd = (raw_instr >> 7) & 0x1F; 
         decoded.rs1 = (raw_instr >> 15) & 0x1F;
         decoded.imm = (raw_instr >> 20) & 0xFFF; 
+        decoded.imm = sign_extend(decoded.imm, 12);
         switch (funct3) {
             case 0x0: // ADDI
                 decoded.op = Operation::ADDI;
@@ -153,7 +161,8 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
     case 0x63: // branches
         decoded.rs1 = (raw_instr >> 15) & 0x1F;
         decoded.rs2 = (raw_instr >> 20) & 0x1F;
-        decoded.imm = ((raw_instr >> 7) & 0x1E) | ((raw_instr >> 25) & 0x3F) << 5 | ((raw_instr >> 8) & 0x1) << 11 | ((raw_instr >> 31) & 0x1) << 12;
+        decoded.imm = ((raw_instr >> 7) & 0x1E) | ((raw_instr >> 25) & 0x3F) << 5 | ((raw_instr >> 7) & 0x1) << 11 | ((raw_instr >> 31) & 0x1) << 12;
+        decoded.imm = sign_extend(decoded.imm, 14);
         switch (funct3) {
             case 0x0: // BEQ
                 decoded.op = Operation::BEQ;
@@ -179,22 +188,27 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
         break; 
     case 0x6F: // JAL
         decoded.rd = (raw_instr >> 7) & 0x1F;
-        decoded.imm = ((raw_instr >> 21) & 0x3FF) | ((raw_instr >> 20) & 0x1) << 10 | ((raw_instr >> 12) & 0xFF) << 11 | ((raw_instr >> 31) & 0x1) << 19;
+        decoded.imm = ((raw_instr >> 20) & 0x7FE) | ((raw_instr >> 20) & 0x1) << 11 | ((raw_instr >> 12) & 0xFF) << 12 | ((raw_instr >> 31) & 0x1) << 20;
+        decoded.imm = sign_extend(decoded.imm, 21);
         decoded.op = Operation::JAL;
         break; 
     case 0x67: // JALR
         decoded.rd = (raw_instr >> 7) & 0x1F;
         decoded.rs1 = (raw_instr >> 15) & 0x1F;
         decoded.imm = (raw_instr >> 20) & 0xFFF;
+        decoded.imm = sign_extend(decoded.imm, 12);
         decoded.op = Operation::JALR;
         break;
     case 0x37: // LUI
         decoded.rd = (raw_instr >> 7) & 0x1F;
+        // no need for sign extension here since LUI uses the upper 20 bits directly
         decoded.imm = raw_instr & 0xFFFFF000;
+        //decoded.immm = sign_extend(decoded.imm, 32);
         decoded.op = Operation::LUI;
         break;
     case 0x17: // AUIPC
         decoded.rd = (raw_instr >> 7) & 0x1F;
+        // no need for sign extension here since AUIPC uses the upper 20 bits directly
         decoded.imm = raw_instr & 0xFFFFF000;
         decoded.op = Operation::AUIPC;
         break;
@@ -258,12 +272,12 @@ void CPU::execute(const decoded_instruction_t& instr) {
             break;
         case Operation::BLTU:
             if (registerFile[instr.rs1] < registerFile[instr.rs2]) {
-                PC += instr.imm;
+                PC = last_PC + instr.imm;
             }
             break;
         case Operation::BGEU:
             if (registerFile[instr.rs1] >= registerFile[instr.rs2]) {
-                PC += instr.imm;
+                PC = last_PC + instr.imm;
            }
             break;
         case Operation::ADDI:
