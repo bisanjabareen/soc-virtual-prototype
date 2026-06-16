@@ -236,6 +236,30 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
 
 void CPU::execute(const decoded_instruction_t& instr) {
     switch(instr.op){
+        case Operation::LB: {
+            uint32_t addr = registerFile[instr.rs1] + instr.imm;
+            int8_t value = static_cast<int8_t>(read_mem(addr));
+            registerFile[instr.rd] = static_cast<int32_t>(value);
+            break;
+        }
+        case Operation::LH: {
+            uint32_t addr = registerFile[instr.rs1] + instr.imm;
+            int16_t value = static_cast<int16_t>(read_mem(addr) | (read_mem(addr + 1) << 8));
+            registerFile[instr.rd] = static_cast<int32_t>(value);
+            break;
+        }
+        case Operation::LBU: {
+            uint32_t addr = registerFile[instr.rs1] + instr.imm;
+            uint8_t value = read_mem(addr);
+            registerFile[instr.rd] = static_cast<int32_t>(value);
+            break;
+        }
+        case Operation::LHU: {
+            uint32_t addr = registerFile[instr.rs1] + instr.imm;
+            uint16_t value = read_mem(addr) | (read_mem(addr + 1) << 8);
+            registerFile[instr.rd] = static_cast<int32_t>(value);
+            break;
+        }
         case Operation::ADD:
             registerFile[instr.rd] = registerFile[instr.rs1] + registerFile[instr.rs2];
             break;
@@ -327,6 +351,19 @@ void CPU::execute(const decoded_instruction_t& instr) {
             write_mem(addr + 1, (value >> 8) & 0xFF);
             write_mem(addr + 2, (value >> 16) & 0xFF);
             write_mem(addr + 3, (value >> 24) & 0xFF);
+            break;
+        }
+        case Operation::SH: {
+            uint32_t addr = registerFile[instr.rs1] + instr.imm;
+            uint16_t value = registerFile[instr.rs2] & 0xFFFF;
+            write_mem(addr, value & 0xFF);
+            write_mem(addr + 1, (value >> 8) & 0xFF);
+            break;
+        }
+        case Operation::SB: {
+            uint32_t addr = registerFile[instr.rs1] + instr.imm;
+            uint8_t value = registerFile[instr.rs2] & 0xFF;
+            write_mem(addr, value);
             break;
         }
         case Operation::LUI:
