@@ -7,7 +7,7 @@ int main() {
     // Hand-encoded: add x3, x1, x2
     //   opcode=0x33, rd=3, funct3=0, rs1=1, rs2=2, funct7=0
     //   encoding: 0x002081B3
-    uint32_t add_instr = 0x002081B3;
+    uint32_t add_instr = 0xFFF00093;
 
     // place it in memory at address 0 (little-endian: low byte first)
     cpu.write_mem(0, add_instr & 0xFF);
@@ -16,12 +16,12 @@ int main() {
     cpu.write_mem(3, (add_instr >> 24) & 0xFF);
 
     // set x1 = 10, x2 = 32  (you'll need a way to set registers)
-    cpu.set_reg(1, 10);
-    cpu.set_reg(2, 32);
+    //cpu.set_reg(1, -1);
+    //cpu.set_reg(2, 32);
 
     // run ONE instruction (you'll want a step() that does one fetch/decode/execute)
     cpu.step();
 
-    printf("x3 = %d (expected 42)\n", cpu.get_reg(3));
+    printf("x1 = %d (expected -1)\n", cpu.get_reg(1));
     return 0;
 }
