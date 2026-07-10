@@ -1,7 +1,7 @@
 # SoC virtual prototype 
 A project that uses SystemC to model a SoC at transcation level.
 
-##Motivation
+## Motivation
 Honestly... I came accross a job req that I was curious about: virtual prototypes/platforms. I decided I want to explore this kind of field further, to see if I actually like this kind of work, and well, I fell in love! 
 We don't have classes on SystemC in the CS department, and so I had to learn this on my own.
 I looked through some production grade github repos, as well as some lectures from a German university, and watched them to ramp up on SystemC and TLM: 
