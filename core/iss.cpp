@@ -1,4 +1,5 @@
 #include "iss.h"
+#include <cstdio>
 
 CPU::CPU(uint32_t initial_pc, uint32_t memory_size) {
     PC = initial_pc;
@@ -19,6 +20,7 @@ int32_t sign_extend(uint32_t value, int bits) {
 
 int32_t CPU::get_reg(uint8_t reg) {
     if (reg < 32) {
+        printf("Getting register %d: %d\n", reg, registerFile[reg]);
         return registerFile[reg];
     } else {
         return 0; 
@@ -178,7 +180,7 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
         decoded.rs1 = (raw_instr >> 15) & 0x1F;
         decoded.rs2 = (raw_instr >> 20) & 0x1F;
         decoded.imm = ((raw_instr >> 7) & 0x1E) | ((raw_instr >> 25) & 0x3F) << 5 | ((raw_instr >> 7) & 0x1) << 11 | ((raw_instr >> 31) & 0x1) << 12;
-        decoded.imm = sign_extend(decoded.imm, 14);
+        decoded.imm = sign_extend(decoded.imm, 13);
         switch (funct3) {
             case 0x0: // BEQ
                 decoded.op = Operation::BEQ;
@@ -267,22 +269,22 @@ void CPU::execute(const decoded_instruction_t& instr) {
             registerFile[instr.rd] = registerFile[instr.rs1] - registerFile[instr.rs2];
             break;
         case Operation::SLL:
-            registerFile[instr.rd] = registerFile[instr.rs1] << registerFile[instr.rs2];
+            registerFile[instr.rd] = (uint32_t)registerFile[instr.rs1] << (registerFile[instr.rs2] & 0X1F);
             break;
         case Operation::SLT:
-            registerFile[instr.rd] = (int32_t)registerFile[instr.rs1] < (int32_t)registerFile[instr.rs2];
+            registerFile[instr.rd] = registerFile[instr.rs1] < registerFile[instr.rs2];
             break;
         case Operation::SLTU:
-            registerFile[instr.rd] = registerFile[instr.rs1] < registerFile[instr.rs2];
+            registerFile[instr.rd] = (uint32_t)registerFile[instr.rs1] < (uint32_t)registerFile[instr.rs2];
             break;
         case Operation::XOR:
             registerFile[instr.rd] = registerFile[instr.rs1] ^ registerFile[instr.rs2];
             break;
         case Operation::SRL:
-            registerFile[instr.rd] = registerFile[instr.rs1] >> registerFile[instr.rs2];
+            registerFile[instr.rd] = (uint32_t)registerFile[instr.rs1] >> (registerFile[instr.rs2] & 0X1F);
             break;
         case Operation::SRA:
-            registerFile[instr.rd] = (int32_t)registerFile[instr.rs1] >> registerFile[instr.rs2];
+            registerFile[instr.rd] = (int32_t)registerFile[instr.rs1] >> (registerFile[instr.rs2] & 0X1F);
             break;
         case Operation::OR:
             registerFile[instr.rd] = registerFile[instr.rs1] | registerFile[instr.rs2];
@@ -301,7 +303,7 @@ void CPU::execute(const decoded_instruction_t& instr) {
             }
             break;
         case Operation::BLT:
-            if ((int32_t)registerFile[instr.rs1] < (int32_t)registerFile[instr.rs2]) {
+            if (registerFile[instr.rs1] < registerFile[instr.rs2]) {
                 PC = last_PC + instr.imm;
             }
             break;
@@ -311,14 +313,14 @@ void CPU::execute(const decoded_instruction_t& instr) {
             }
             break;
         case Operation::BLTU:
-            if (registerFile[instr.rs1] < registerFile[instr.rs2]) {
+            if ((uint32_t)registerFile[instr.rs1] < (uint32_t)registerFile[instr.rs2]) {
                 PC = last_PC + instr.imm;
             }
             break;
         case Operation::BGEU:
-            if (registerFile[instr.rs1] >= registerFile[instr.rs2]) {
+            if ((uint32_t)registerFile[instr.rs1] >= (uint32_t)registerFile[instr.rs2]) {
                 PC = last_PC + instr.imm;
-           }
+            }
             break;
         case Operation::ADDI:
             registerFile[instr.rd] = registerFile[instr.rs1] + instr.imm;
@@ -327,7 +329,7 @@ void CPU::execute(const decoded_instruction_t& instr) {
             registerFile[instr.rd] = registerFile[instr.rs1] < instr.imm;
             break;
         case Operation::SLTIU:
-            registerFile[instr.rd] = registerFile[instr.rs1] < instr.imm;
+            registerFile[instr.rd] = (uint32_t)registerFile[instr.rs1] < (uint32_t)instr.imm;
             break;
         case Operation::XORI:
             registerFile[instr.rd] = registerFile[instr.rs1] ^ instr.imm;
@@ -370,7 +372,7 @@ void CPU::execute(const decoded_instruction_t& instr) {
             registerFile[instr.rd] = instr.imm;
             break;
         case Operation::AUIPC:
-            registerFile[instr.rd] = PC + instr.imm;
+            registerFile[instr.rd] = last_PC + instr.imm;
             break; 
         case Operation::JAL: {
             uint32_t return_addr = last_PC + 4; 
