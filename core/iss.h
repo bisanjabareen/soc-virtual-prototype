@@ -61,8 +61,8 @@ public:
     decoded_instruction_t decode(uint32_t raw_instr);         
     void execute(const decoded_instruction_t& instr);   
     void run();                                      
-    uint8_t read_mem(uint32_t addr);
-    void write_mem(uint32_t addr, uint8_t value);
+    uint32_t read_mem(uint32_t addr, uint32_t len = 1);
+    void write_mem(uint32_t addr, uint32_t value, uint32_t len = 1);
     int32_t get_reg(uint8_t reg);
     void set_reg(uint8_t reg, int32_t value);
     void step();

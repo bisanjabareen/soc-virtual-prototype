@@ -36,11 +36,8 @@ void CPU::set_reg(uint8_t reg, int32_t value) {
 
 
 uint32_t CPU::fetch() {
-    uint32_t instr = read_mem(PC);
-    uint32_t instr2 = read_mem(PC + 1);
-    uint32_t instr3 = read_mem(PC + 2);
-    uint32_t instr4 = read_mem(PC + 3);
-    return (instr4 << 24) | (instr3 << 16) | (instr2 << 8) | instr;
+    uint32_t instr = read_mem(PC, 4);
+    return instr;
 }
 
 decoded_instruction_t CPU::decode(uint32_t raw_instr) {
@@ -240,25 +237,25 @@ void CPU::execute(const decoded_instruction_t& instr) {
     switch(instr.op){
         case Operation::LB: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
-            int8_t value = static_cast<int8_t>(read_mem(addr));
+            int8_t value = static_cast<int8_t>(read_mem(addr, 1));
             registerFile[instr.rd] = static_cast<int32_t>(value);
             break;
         }
         case Operation::LH: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
-            int16_t value = static_cast<int16_t>(read_mem(addr) | (read_mem(addr + 1) << 8));
+            int16_t value = static_cast<int16_t>(read_mem(addr, 2));
             registerFile[instr.rd] = static_cast<int32_t>(value);
             break;
         }
         case Operation::LBU: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
-            uint8_t value = read_mem(addr);
+            uint8_t value = read_mem(addr, 1);
             registerFile[instr.rd] = static_cast<int32_t>(value);
             break;
         }
         case Operation::LHU: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
-            uint16_t value = read_mem(addr) | (read_mem(addr + 1) << 8);
+            uint16_t value = read_mem(addr, 2);
             registerFile[instr.rd] = static_cast<int32_t>(value);
             break;
         }
@@ -342,30 +339,30 @@ void CPU::execute(const decoded_instruction_t& instr) {
             break;
         case Operation::LW: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
-            uint32_t value = read_mem(addr) | (read_mem(addr + 1) << 8) | (read_mem(addr + 2) << 16) | (read_mem(addr + 3) << 24);
+            uint32_t value = read_mem(addr, 4);
             registerFile[instr.rd] = value;
             break;
         }
         case Operation::SW: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
             uint32_t value = registerFile[instr.rs2];
-            write_mem(addr, value & 0xFF);
-            write_mem(addr + 1, (value >> 8) & 0xFF);
-            write_mem(addr + 2, (value >> 16) & 0xFF);
-            write_mem(addr + 3, (value >> 24) & 0xFF);
+            write_mem(addr, value, 4);
+            //write_mem(addr + 1, (value >> 8) & 0xFF);
+            //write_mem(addr + 2, (value >> 16) & 0xFF);
+            //write_mem(addr + 3, (value >> 24) & 0xFF);
             break;
         }
         case Operation::SH: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
             uint16_t value = registerFile[instr.rs2] & 0xFFFF;
-            write_mem(addr, value & 0xFF);
-            write_mem(addr + 1, (value >> 8) & 0xFF);
+            write_mem(addr, value, 2);
+            //write_mem(addr + 1, (value >> 8) & 0xFF, 1);
             break;
         }
         case Operation::SB: {
             uint32_t addr = registerFile[instr.rs1] + instr.imm;
             uint8_t value = registerFile[instr.rs2] & 0xFF;
-            write_mem(addr, value);
+            write_mem(addr, value, 1);
             break;
         }
         case Operation::LUI:
@@ -391,16 +388,16 @@ void CPU::execute(const decoded_instruction_t& instr) {
     }
 
 }                               
-uint8_t CPU::read_mem(uint32_t addr) {
-    if (addr < memory.size()) {
-        return memory[addr];
-    } else {
-        return 0; 
+uint32_t CPU::read_mem(uint32_t addr, uint32_t len) {
+    uint32_t value = 0;
+    for (uint32_t i = 0; i < len; ++i) {
+        value |= (uint32_t)memory[addr + i] << (8 * i);
     }
+    return value;
 }
-void CPU::write_mem(uint32_t addr, uint8_t value) {
-    if (addr < memory.size()) {
-        memory[addr] = value;
+void CPU::write_mem(uint32_t addr, uint32_t value, uint32_t len) {
+    for (uint32_t i = 0; i < len; ++i) {
+        memory[addr + i] = (value >> (8 * i)) & 0xFF;
     }
 }
 
