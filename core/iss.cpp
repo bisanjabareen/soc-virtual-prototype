@@ -1,13 +1,15 @@
 #include "iss.h"
 #include <cstdio>
 
-CPU::CPU(uint32_t initial_pc, uint32_t memory_size) {
+CPU::CPU(sc_core::sc_module_name name, uint32_t initial_pc) : 
+                    sc_core::sc_module(name){
     PC = initial_pc;
-    memory = std::vector<uint8_t>(memory_size, 0);
+    //memory = std::vector<uint8_t>(memory_size, 0);
     for (int i = 0; i < 32; ++i) {
         registerFile[i] = 0;
     }
     last_PC = 0;
+    SC_THREAD(run);
 }
 
 CPU::~CPU() {
@@ -389,16 +391,46 @@ void CPU::execute(const decoded_instruction_t& instr) {
 
 }                               
 uint32_t CPU::read_mem(uint32_t addr, uint32_t len) {
-    uint32_t value = 0;
-    for (uint32_t i = 0; i < len; ++i) {
-        value |= (uint32_t)memory[addr + i] << (8 * i);
+    tlm::tlm_generic_payload trans;
+    sc_core::sc_time delay = sc_core::SC_ZERO_TIME;
+    uint32_t data = 0;
+
+    trans.set_command(tlm::TLM_READ_COMMAND);
+    trans.set_address(addr);
+    trans.set_data_ptr(reinterpret_cast<unsigned char*>(&data));
+    trans.set_data_length(len);
+    trans.set_streaming_width(len);
+    trans.set_byte_enable_ptr(nullptr);
+    trans.set_dmi_allowed(false);
+    trans.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+    socket->b_transport(trans, delay);
+
+    if (trans.is_response_error()) {
+        SC_REPORT_ERROR("CPU", "read transaction failed");
     }
-    return value;
+        
+    return data;
 }
 void CPU::write_mem(uint32_t addr, uint32_t value, uint32_t len) {
-    for (uint32_t i = 0; i < len; ++i) {
-        memory[addr + i] = (value >> (8 * i)) & 0xFF;
+    tlm::tlm_generic_payload trans;
+    sc_core::sc_time delay = sc_core::SC_ZERO_TIME;
+
+    trans.set_command(tlm::TLM_WRITE_COMMAND);
+    trans.set_address(addr);
+    trans.set_data_ptr(reinterpret_cast<unsigned char*>(&value));
+    trans.set_data_length(len);
+    trans.set_streaming_width(len);
+    trans.set_byte_enable_ptr(nullptr);
+    trans.set_dmi_allowed(false);
+    trans.set_response_status(tlm::TLM_INCOMPLETE_RESPONSE);
+
+    socket->b_transport(trans, delay);
+
+    if (trans.is_response_error()) {
+        SC_REPORT_ERROR("CPU", "write transaction failed");
     }
+        
 }
 
 void CPU::run() {
@@ -409,6 +441,7 @@ void CPU::run() {
         decoded_instruction_t instruction = decode(raw_instruction);
         execute(instruction);
         registerFile[0] = 0;
+        wait(10, sc_core::SC_NS);
     }
 }
 
@@ -419,5 +452,6 @@ void CPU::step() {
     decoded_instruction_t instruction = decode(raw_instruction);
     execute(instruction);
     registerFile[0] = 0;
+    
 }
 

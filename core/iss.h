@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
-#include <vector>
+#include <systemc>
+#include <tlm>
+#include <tlm_utils/simple_initiator_socket.h>
 
 enum class Operation {
     ADD,
@@ -46,15 +48,13 @@ struct decoded_instruction_t {
     int32_t imm;
 };
 
-class CPU {
-private:
+struct CPU : sc_core::sc_module {
+    tlm_utils::simple_initiator_socket<CPU> socket;
     uint32_t PC;     
     uint32_t last_PC;               
-    std::vector<uint8_t> memory;    
-    int32_t registerFile[32];      
-
-public:
-    CPU(uint32_t initial_pc, uint32_t memory_size);
+    //std::vector<uint8_t> memory;    
+    int32_t registerFile[32];    
+    CPU(sc_core::sc_module_name name, uint32_t initial_pc);
     ~CPU();
 
     uint32_t fetch();                                
