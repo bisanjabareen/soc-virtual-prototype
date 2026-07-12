@@ -50,7 +50,7 @@ I'm modeling a system on a chip:
 
 ## What is next?
 - Multicore modeling (nice to have)
-- Interrupt mechanisms 
+- Interrupt mechanisms and timer peripheral
 - Halting mechanisms
 - Comprehensive tests
 - firmware
