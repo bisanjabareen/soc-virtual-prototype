@@ -17,14 +17,38 @@ I'm modeling a system on a chip:
 - Bus 
 - Interrupt mechanisms 
 
+```
+┌─────────────────────────────────────────────────┐
+│              System on Chip (SoC)               │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌──────────────────┐                          │
+│  │  RISC-V RV32I    │                          │
+│  │   Core (C++)     │                          │
+│  └────────┬─────────┘                          │
+│           │                                    │
+│  ┌────────▼──────────┐                         │
+│  │   TLM Bus         │                         │
+│  └────┬──────────┬───┘                         │
+│       │          │                             │
+│  ┌────▼───┐  ┌──▼──────────┐                  │
+│  │ Memory │  │    UART      │                  │
+│  │ Module │  │  Peripheral  │                  │
+│  └────────┘  └──────────────┘                  │
+│                                                 │
+│  [Interrupt Mechanisms]                        │
+│                                                 │
+└─────────────────────────────────────────────────┘
+```
+
+
 ## What is working today? 
-- RISC-V RV32I core in cpp 
+- RISC-V RV32I core in cpp & RISC-V systemC wrapper
 - A simple memory module 
+- Bus 
 
 ## What is next?
-- RISC-V systemC wrapper 
 - UART peripheral
-- Bus 
 - Interrupt mechanisms 
 - Comprehensive tests
 ---
