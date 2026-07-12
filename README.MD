@@ -46,11 +46,14 @@ I'm modeling a system on a chip:
 - RISC-V RV32I core in cpp & RISC-V systemC wrapper
 - A simple memory module 
 - Bus 
+- UART peripheral TX
 
 ## What is next?
-- UART peripheral
+- Multicore modeling (nice to have)
 - Interrupt mechanisms 
+- Halting mechanisms
 - Comprehensive tests
+- firmware
 ---
 ## The project stack:
 
