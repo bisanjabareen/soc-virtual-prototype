@@ -21,7 +21,7 @@ int sc_main(int argc, char* argv[]) {
     cpu.set_reg(2, 0x10000000);
     cpu.set_reg(1, 0x48);
     memory.load(0, 0x00110023, 4);
-    sc_start(25, SC_NS); 
+    sc_start(25, SC_NS);     
 
     //int result = cpu.get_reg(3);
     /*if (result == 42) {

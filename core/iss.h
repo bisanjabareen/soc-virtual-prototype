@@ -5,6 +5,7 @@
 #include <tlm_utils/simple_initiator_socket.h>
 
 enum class Operation {
+    NOP,
     ADD,
     SUB,
     ADDI,

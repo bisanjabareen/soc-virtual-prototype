@@ -230,6 +230,7 @@ decoded_instruction_t CPU::decode(uint32_t raw_instr) {
         decoded.op = Operation::AUIPC;
         break;
     default:
+        decoded.op = Operation::NOP; // Unknown instruction, treat as NOP
         break;
     }
     return decoded;
